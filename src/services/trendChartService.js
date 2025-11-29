@@ -10,7 +10,7 @@ async function getTrendChart(keyword = "technology", geo = "US") {
     `&tz=420` +
     `&api_key=${process.env.SERPAPI_KEY}`;
 
-  console.log("[SERVICE] CHART URL:", url);
+  // console.log("[SERVICE] CHART URL:", url);
 
   const json = await serpGet(url);
 
