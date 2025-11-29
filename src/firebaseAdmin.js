@@ -3,7 +3,7 @@ const path = require('path');
 
 admin.initializeApp({
     credential: admin.credential.cert(
-        require(path.join(__dirname, "..", "trendscope-f4d8a-firebase-adminsdk-fbsvc-0c0a4ae189.json"))
+        require(path.join(__dirname, "..", process.env.FIREBASE_ADMIN_CREDENTIAL))
     ),
 });
 

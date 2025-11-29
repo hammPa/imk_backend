@@ -4,3 +4,10 @@ node_modules
 indexold.js
 indexold2.js
 logs
+
+
+*.json
+!package.json
+!package-lock.json
+firebase-adminsdk-*.json
+service-account.json
