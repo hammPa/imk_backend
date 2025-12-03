@@ -88,4 +88,12 @@ app.get("/admin/users", userAdmin.getUsers);
 app.post("/admin/users/update", userAdmin.updateUser);
 app.post("/admin/users/delete", userAdmin.deleteUser);
 
+
+const ai = require("./controllers/aiController");
+
+app.post("/ai/explain-chart", ai.explainChartController);
+app.post("/ai/sentiment", ai.sentimentController);
+
 module.exports = app;
+
+
