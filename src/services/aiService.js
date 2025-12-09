@@ -5,9 +5,48 @@ import dotenv from 'dotenv'
 
 dotenv.config({ path: '/.env' })
 
-const ai = new GoogleGenAI({
-  apiKey: process.env.GEMINI_API_KEY,
-});
+const API_KEYS = [
+  process.env.GEMINI_KEY_1,
+  process.env.GEMINI_KEY_2,
+].filter(Boolean);
+
+let keyIndex = 0;
+
+function getClient() {
+  return new GoogleGenAI({ apiKey: API_KEYS[keyIndex] });
+}
+
+function rotateKey() {
+  keyIndex = (keyIndex + 1) % API_KEYS.length;
+}
+
+async function generateWithFailover(prompt, model) {
+  for (let i = 0; i < API_KEYS.length; i++) {
+    try {
+      const ai = getClient();
+
+      const res = await ai.models.generateContent({
+        model,
+        contents: prompt,
+      });
+
+      return res.candidates?.[0]?.content?.parts?.[0]?.text || "";
+
+    } catch (err) {
+      if (err.status === 429 || err.code === 429) {
+        console.warn(`API Key ${keyIndex + 1} limit. Switching key...`);
+        rotateKey();
+        await new Promise(r => setTimeout(r, 300));
+        continue;
+      }
+
+      throw err;
+    }
+  }
+
+  throw new Error("Semua API key habis limit.");
+}
+
 
 // ------------------ 1) EXPLAIN CHART ------------------
 export async function explainChart({ keyword, geo, range, growth, chart }) {
@@ -37,12 +76,7 @@ Instruksi Output:
 `;
 
 
-  const response = await ai.models.generateContent({
-    model: "gemini-2.5-flash-lite",
-    contents: prompt,
-  });
-
-  return response.candidates?.[0]?.content?.parts?.[0]?.text || "";
+  return await generateWithFailover(prompt, "gemini-1.5-flash");
 }
 
 // ------------------ 2) SENTIMENT ------------------
@@ -66,10 +100,5 @@ Instruksi Output:
 - Hanya keluarkan teks biasa.
 `;
 
-  const response = await ai.models.generateContent({
-    model: "gemini-2.5-flash-lite",
-    contents: prompt,
-  });
-
-  return response.candidates?.[0]?.content?.parts?.[0]?.text || "";
+  return await generateWithFailover(prompt, "gemini-1.5-flash");
 }
